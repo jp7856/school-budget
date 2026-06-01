@@ -1,7 +1,7 @@
 import requests
 import smtplib
-import json
 import os
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
@@ -15,20 +15,38 @@ GMAIL_APP_PW  = os.environ["GMAIL_APP_PASSWORD"]
 RECV_EMAIL    = os.environ["RECV_EMAIL"]
 
 # ─────────────────────────────────────────
+# 날짜 범위 설정
+# 실행 방법:
+#   python check_bids.py              → 최근 2시간 (자동 실행용)
+#   python check_bids.py 20260601     → 특정 날짜 하루 전체
+#   python check_bids.py 20260601 20260602  → 특정 기간
+# ─────────────────────────────────────────
+def get_date_range():
+    if len(sys.argv) == 3:
+        from_date = sys.argv[1] + "0000"
+        to_date   = sys.argv[2] + "2359"
+        print(f"📅 조회 기간: {sys.argv[1]} ~ {sys.argv[2]}")
+    elif len(sys.argv) == 2:
+        from_date = sys.argv[1] + "0000"
+        to_date   = sys.argv[1] + "2359"
+        print(f"📅 조회 날짜: {sys.argv[1]}")
+    else:
+        now = datetime.now()
+        from_date = (now - timedelta(hours=2)).strftime("%Y%m%d%H%M")
+        to_date   = now.strftime("%Y%m%d%H%M")
+        print(f"📅 조회 기간: 최근 2시간")
+    return from_date, to_date
+
+# ─────────────────────────────────────────
 # 나라장터 API 호출
 # ─────────────────────────────────────────
-def fetch_bids():
+def fetch_bids(from_date, to_date):
     url = "http://apis.data.go.kr/1230000/ao/BidPublicInfoService/getBidPblancListInfoThng"
-    
-    # 오늘 날짜 기준으로 조회
-    today = datetime.now()
-    from_date = (today - timedelta(hours=2)).strftime("%Y%m%d%H%M")
-    to_date   = today.strftime("%Y%m%d%H%M")
 
     params = {
         "serviceKey": API_KEY,
         "pageNo": "1",
-        "numOfRows": "20",
+        "numOfRows": "50",
         "inqryDiv": "1",
         "inqryBgnDt": from_date,
         "inqryEndDt": to_date,
@@ -49,22 +67,22 @@ def fetch_bids():
 # ─────────────────────────────────────────
 # Gmail 이메일 발송
 # ─────────────────────────────────────────
-def send_email(bids):
+def send_email(bids, from_date, to_date):
     if not bids:
         print("새로운 입찰공고 없음 — 이메일 미발송")
         return
 
+    period = f"{from_date[:8]} ~ {to_date[:8]}"
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # HTML 이메일 본문 작성
     rows = ""
     for b in bids:
-        title   = b.get("bidNtceNm", "-")
-        org     = b.get("ntceInsttNm", "-")
-        amount  = b.get("asignBdgtAmt", "-")
-        end_dt  = b.get("bidClseDt", "-")
-        bid_no  = b.get("bidNtceNo", "")
-        link    = f"https://www.g2b.go.kr/pt/menu/selectSubFrame.do?framesrc=/pt/menu/frameTgong.do?bidNtceNo={bid_no}"
+        title  = b.get("bidNtceNm", "-")
+        org    = b.get("ntceInsttNm", "-")
+        amount = b.get("asignBdgtAmt", "-")
+        end_dt = b.get("bidClseDt", "-")
+        bid_no = b.get("bidNtceNo", "")
+        link   = f"https://www.g2b.go.kr/pt/menu/selectSubFrame.do?framesrc=/pt/menu/frameTgong.do?bidNtceNo={bid_no}"
 
         rows += f"""
         <tr>
@@ -83,8 +101,8 @@ def send_email(bids):
 
     html = f"""
     <html><body style="font-family:Arial,sans-serif;max-width:800px;margin:auto;">
-      <h2 style="color:#1a73e8;">📋 나라장터 새 입찰공고 ({now_str})</h2>
-      <p>총 <b>{len(bids)}건</b>의 새 입찰공고가 있습니다.</p>
+      <h2 style="color:#1a73e8;">📋 나라장터 입찰공고 조회 결과</h2>
+      <p>조회 기간: <b>{period}</b> | 총 <b>{len(bids)}건</b></p>
       <table width="100%" style="border-collapse:collapse;font-size:14px;">
         <thead>
           <tr style="background:#f1f3f4;">
@@ -96,13 +114,13 @@ def send_email(bids):
         <tbody>{rows}</tbody>
       </table>
       <p style="color:#999;font-size:12px;margin-top:20px;">
-        이 메일은 GitHub Actions에 의해 자동 발송되었습니다.
+        발송 시각: {now_str} | GitHub Actions 자동 발송
       </p>
     </body></html>
     """
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"[나라장터] 새 입찰공고 {len(bids)}건 ({now_str})"
+    msg["Subject"] = f"[나라장터] 입찰공고 {len(bids)}건 ({period})"
     msg["From"]    = GMAIL_ADDRESS
     msg["To"]      = RECV_EMAIL
     msg.attach(MIMEText(html, "html", "utf-8"))
@@ -119,7 +137,8 @@ def send_email(bids):
 # 실행
 # ─────────────────────────────────────────
 if __name__ == "__main__":
-    print(f"🔍 나라장터 입찰공고 조회 중... ({datetime.now().strftime('%Y-%m-%d %H:%M')})")
-    bids = fetch_bids()
+    from_date, to_date = get_date_range()
+    print(f"🔍 나라장터 입찰공고 조회 중...")
+    bids = fetch_bids(from_date, to_date)
     print(f"   → {len(bids)}건 조회됨")
-    send_email(bids)
+    send_email(bids, from_date, to_date)
