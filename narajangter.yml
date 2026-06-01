@@ -1,0 +1,33 @@
+name: 나라장터 입찰공고 알림
+
+on:
+  schedule:
+    # 매일 오전 9시, 오후 1시, 오후 5시 실행 (UTC 기준 → 한국시간 +9)
+    - cron: '0 0 * * 1-5'   # 한국시간 오전 9시 (월~금)
+    - cron: '0 4 * * 1-5'   # 한국시간 오후 1시 (월~금)
+    - cron: '0 8 * * 1-5'   # 한국시간 오후 5시 (월~금)
+  workflow_dispatch:          # 수동 실행 버튼도 활성화
+
+jobs:
+  check-bids:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 가져오기
+        uses: actions/checkout@v3
+
+      - name: Python 설치
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 필요 패키지 설치
+        run: pip install requests
+
+      - name: 입찰공고 확인 및 이메일 발송
+        env:
+          NARAJANGTER_API_KEY: ${{ secrets.NARAJANGTER_API_KEY }}
+          GMAIL_ADDRESS:       ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECV_EMAIL:          ${{ secrets.RECV_EMAIL }}
+        run: python check_bids.py
