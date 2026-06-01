@@ -41,7 +41,7 @@ def get_date_range():
 # 나라장터 API 호출
 # ─────────────────────────────────────────
 def fetch_bids(from_date, to_date):
-    url = "http://apis.data.go.kr/1230000/ao/BidPublicInfoService/getBidPblancListInfoThng"
+    url = "https://apis.data.go.kr/1230000/ao/BidPublicInfoService/getBidPblancListInfoThng"
 
     params = {
         "serviceKey": API_KEY,
