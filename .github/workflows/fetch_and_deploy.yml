@@ -1,0 +1,53 @@
+name: 데이터 수집 및 배포
+
+on:
+  schedule:
+    - cron: '0 0 * * 1-5'
+    - cron: '0 4 * * 1-5'
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      from_date:
+        description: '조회 시작일 (예: 20260601) — 비워두면 최근 30일'
+        required: false
+        default: ''
+      to_date:
+        description: '조회 종료일 (예: 20260602)'
+        required: false
+        default: ''
+
+jobs:
+  fetch-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - name: 나라장터 데이터 수집
+        env:
+          NARAJANGTER_API_KEY: ${{ secrets.NARAJANGTER_API_KEY }}
+        run: |
+          FROM="${{ github.event.inputs.from_date }}"
+          TO="${{ github.event.inputs.to_date }}"
+          if [ -n "$FROM" ] && [ -n "$TO" ]; then
+            python fetch_bids.py $FROM $TO
+          elif [ -n "$FROM" ]; then
+            python fetch_bids.py $FROM
+          else
+            python fetch_bids.py
+          fi
+      - name: bids.json 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bids.json
+          git diff --staged --quiet || git commit -m "데이터 업데이트: $(date '+%Y-%m-%d %H:%M')"
+          git push
+      - name: GitHub Pages 배포
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          exclude_assets: '.github,fetch_bids.py,check_bids.py,README.md'
