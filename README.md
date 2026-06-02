@@ -55,3 +55,5 @@ Repository → **Settings → Secrets and variables → Actions → New reposito
 제목: `[나라장터] 새 입찰공고 5건 (2026-06-01 09:00)`
 
 본문에 공고명, 기관명, 예산, 마감일시, 바로가기 링크가 포함됩니다.
+
+
