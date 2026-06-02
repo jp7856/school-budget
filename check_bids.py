@@ -29,7 +29,7 @@ def get_date_range():
     return from_date, to_date
 
 def fetch_bids(from_date, to_date):
-    base_url = "https://apis.data.go.kr/1230000/ao/BidPublicInfoService/getBidPblancListInfoThng"
+    base_url = "http://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoThng"
 
     params = {
         "serviceKey": API_KEY,
