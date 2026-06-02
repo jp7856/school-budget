@@ -5,22 +5,13 @@ import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
-# ─────────────────────────────────────────
-# GitHub Secrets에서 자동으로 불러옵니다
-# ─────────────────────────────────────────
 API_KEY       = os.environ["NARAJANGTER_API_KEY"]
 GMAIL_ADDRESS = os.environ["GMAIL_ADDRESS"]
 GMAIL_APP_PW  = os.environ["GMAIL_APP_PASSWORD"]
 RECV_EMAIL    = os.environ["RECV_EMAIL"]
 
-# ─────────────────────────────────────────
-# 날짜 범위 설정
-# 실행 방법:
-#   python check_bids.py              → 최근 2시간 (자동 실행용)
-#   python check_bids.py 20260601     → 특정 날짜 하루 전체
-#   python check_bids.py 20260601 20260602  → 특정 기간
-# ─────────────────────────────────────────
 def get_date_range():
     if len(sys.argv) == 3:
         from_date = sys.argv[1] + "0000"
@@ -37,11 +28,8 @@ def get_date_range():
         print(f"📅 조회 기간: 최근 2시간")
     return from_date, to_date
 
-# ─────────────────────────────────────────
-# 나라장터 API 호출
-# ─────────────────────────────────────────
 def fetch_bids(from_date, to_date):
-    url = "https://apis.data.go.kr/1230000/ao/BidPublicInfoService/getBidPblancListInfoThng"
+    base_url = "https://apis.data.go.kr/1230000/ao/BidPublicInfoService/getBidPblancListInfoThng"
 
     params = {
         "serviceKey": API_KEY,
@@ -53,20 +41,26 @@ def fetch_bids(from_date, to_date):
         "type": "json",
     }
 
+    # serviceKey는 URL 인코딩 없이 직접 붙이기
+    query = urlencode({k: v for k, v in params.items() if k != "serviceKey"})
+    url = f"{base_url}?serviceKey={API_KEY}&{query}"
+
+    print(f"🌐 API 요청 URL (키 제외): {base_url}?serviceKey=***&{query}")
+
     try:
-        res = requests.get(url, params=params, timeout=10)
+        res = requests.get(url, timeout=15)
+        print(f"📡 응답 상태코드: {res.status_code}")
+        print(f"📄 응답 내용 (앞 200자): {res.text[:200]}")
+
         data = res.json()
         items = data.get("response", {}).get("body", {}).get("items", [])
         if isinstance(items, dict):
             items = [items]
         return items if items else []
     except Exception as e:
-        print(f"API 호출 오류: {e}")
+        print(f"❌ API 호출 오류: {e}")
         return []
 
-# ─────────────────────────────────────────
-# Gmail 이메일 발송
-# ─────────────────────────────────────────
 def send_email(bids, from_date, to_date):
     if not bids:
         print("새로운 입찰공고 없음 — 이메일 미발송")
@@ -113,9 +107,7 @@ def send_email(bids, from_date, to_date):
         </thead>
         <tbody>{rows}</tbody>
       </table>
-      <p style="color:#999;font-size:12px;margin-top:20px;">
-        발송 시각: {now_str} | GitHub Actions 자동 발송
-      </p>
+      <p style="color:#999;font-size:12px;margin-top:20px;">발송 시각: {now_str} | GitHub Actions 자동 발송</p>
     </body></html>
     """
 
@@ -133,9 +125,6 @@ def send_email(bids, from_date, to_date):
     except Exception as e:
         print(f"❌ 이메일 발송 오류: {e}")
 
-# ─────────────────────────────────────────
-# 실행
-# ─────────────────────────────────────────
 if __name__ == "__main__":
     from_date, to_date = get_date_range()
     print(f"🔍 나라장터 입찰공고 조회 중...")
