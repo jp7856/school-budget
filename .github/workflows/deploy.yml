@@ -10,12 +10,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: API 키 주입
+      - name: e76bae74c4bbc0cb0c57431d9e4eb8d088a337bcab2db264fed443af03c1ed60
         run: |
-          sed -i "s/e76bae74c4bbc0cb0c57431d9e4eb8d088a337bcab2db264fed443af03c1ed60/${{ secrets.NARAJANGTER_API_KEY }}/g" index.html
+          sed -i "s/YOUR_API_KEY_HERE/${{ secrets.NARAJANGTER_API_KEY }}/g" index.html
+          cat index.html | grep "serviceKey" | head -1
 
       - name: GitHub Pages 배포
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          publish_dir: .
+          exclude_assets: '.github,check_bids.py,README.md'
