@@ -8,245 +8,60 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #f0f4f8;
-    --card: #ffffff;
-    --primary: #1a4f8a;
-    --primary-light: #e8f0fb;
-    --accent: #e05c2a;
-    --text: #1a2332;
-    --text-muted: #6b7a8d;
-    --border: #dde3ec;
-    --success: #1a7a4a;
-    --row-hover: #f5f8ff;
+    --bg: #f0f4f8; --card: #ffffff; --primary: #1a4f8a;
+    --primary-light: #e8f0fb; --accent: #e05c2a;
+    --text: #1a2332; --text-muted: #6b7a8d;
+    --border: #dde3ec; --success: #1a7a4a; --row-hover: #f5f8ff;
   }
-
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  header {
-    background: var(--primary);
-    color: white;
-    padding: 20px 32px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
-
-  header .logo {
-    width: 40px; height: 40px;
-    background: white;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  header { background: var(--primary); color: white; padding: 20px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  header .logo { width: 40px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
   header h1 { font-size: 20px; font-weight: 700; }
   header p { font-size: 13px; opacity: 0.75; margin-top: 2px; }
-
   .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
-
-  .search-card {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 24px 28px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-bottom: 24px;
-  }
-
+  .search-card { background: var(--card); border-radius: 12px; padding: 24px 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 24px; }
   .search-card h2 { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 18px; }
-
-  .search-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: flex-end;
-  }
-
+  .search-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
-
-  .field input[type="date"] {
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 14px;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--text);
-    background: white;
-    outline: none;
-    transition: border-color 0.2s;
+  .field input[type="date"], .field input[type="text"] {
+    border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 14px;
+    font-size: 14px; font-family: inherit; color: var(--text); background: white; outline: none; transition: border-color 0.2s;
   }
-
-  .field input[type="date"]:focus { border-color: var(--primary); }
-
-  .field input[type="text"] {
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 14px;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--text);
-    background: white;
-    outline: none;
-    width: 220px;
-    transition: border-color 0.2s;
-  }
-
-  .field input[type="text"]:focus { border-color: var(--primary); }
-
-  .btn-search {
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 28px;
-    font-size: 14px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
-
+  .field input[type="text"] { width: 220px; }
+  .field input:focus { border-color: var(--primary); }
+  .btn-search { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px 28px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background 0.2s; }
   .btn-search:hover { background: #153d6e; }
-  .btn-search:active { transform: scale(0.97); }
-
-  .btn-search:disabled { background: #aab; cursor: not-allowed; }
-
-  .result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
+  .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
   .result-count { font-size: 14px; color: var(--text-muted); }
   .result-count b { color: var(--primary); font-size: 16px; }
-
-  .btn-excel {
-    background: var(--success);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    transition: background 0.2s;
-  }
-
+  .updated-info { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .btn-excel { background: var(--success); color: white; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background 0.2s; }
   .btn-excel:hover { background: #145c37; }
-
-  .table-wrap {
-    background: var(--card);
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    overflow: hidden;
-  }
-
+  .table-wrap { background: var(--card); border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-
   thead tr { background: var(--primary); color: white; }
-  thead th {
-    padding: 13px 14px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.15s;
-  }
-
+  thead th { padding: 13px 14px; text-align: left; font-weight: 600; font-size: 13px; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--row-hover); }
-
   tbody td { padding: 12px 14px; vertical-align: top; }
-
-  .bid-title a {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 500;
-    line-height: 1.5;
-  }
-
+  .bid-title a { color: var(--primary); text-decoration: none; font-weight: 500; line-height: 1.5; }
   .bid-title a:hover { text-decoration: underline; }
-
   .bid-org { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-
-  .badge {
-    display: inline-block;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 600;
-    background: var(--primary-light);
-    color: var(--primary);
-  }
-
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; background: var(--primary-light); color: var(--primary); }
   .amount { font-weight: 600; color: var(--text); white-space: nowrap; }
   .date-cell { color: var(--text-muted); font-size: 12.5px; white-space: nowrap; }
-
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-  }
-
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
   .empty-state .icon { font-size: 48px; margin-bottom: 14px; }
-  .empty-state p { font-size: 15px; }
-
-  .loading {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-    font-size: 15px;
-  }
-
-  .loading .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid var(--border);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-  }
-
+  .loading { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 15px; }
+  .loading .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  .error-msg {
-    background: #fff0ee;
-    border: 1px solid #f5c0b0;
-    border-radius: 8px;
-    padding: 16px 20px;
-    color: #c0392b;
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-
-  @media (max-width: 600px) {
-    .search-row { flex-direction: column; }
-    .field input[type="text"] { width: 100%; }
-    header { padding: 16px 18px; }
-  }
+  .error-msg { background: #fff0ee; border: 1px solid #f5c0b0; border-radius: 8px; padding: 16px 20px; color: #c0392b; font-size: 14px; margin-bottom: 16px; }
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">📋</div>
   <div>
@@ -260,35 +75,42 @@
     <h2>🔍 조회 조건</h2>
     <div class="search-row">
       <div class="field">
-        <label>조회 시작일</label>
+        <label>공고명 검색</label>
+        <input type="text" id="keyword" placeholder="예: 홈페이지, 용역...">
+      </div>
+      <div class="field">
+        <label>시작일 필터</label>
         <input type="date" id="fromDate">
       </div>
       <div class="field">
-        <label>조회 종료일</label>
+        <label>종료일 필터</label>
         <input type="date" id="toDate">
       </div>
-      <div class="field">
-        <label>공고명 검색 (선택)</label>
-        <input type="text" id="keyword" placeholder="예: 홈페이지, 용역...">
-      </div>
-      <button class="btn-search" id="searchBtn" onclick="searchBids()">조회하기</button>
+      <button class="btn-search" onclick="filterBids()">검색하기</button>
     </div>
   </div>
 
   <div id="errorMsg" class="error-msg" style="display:none;"></div>
 
+  <div id="loadingSection">
+    <div class="table-wrap">
+      <div class="loading"><div class="spinner"></div>데이터를 불러오는 중...</div>
+    </div>
+  </div>
+
   <div id="resultSection" style="display:none;">
     <div class="result-header">
-      <div class="result-count">총 <b id="totalCount">0</b>건의 입찰공고</div>
-      <button class="btn-excel" onclick="downloadExcel()">
-        📥 엑셀 다운로드
-      </button>
+      <div>
+        <div class="result-count">총 <b id="totalCount">0</b>건의 입찰공고</div>
+        <div class="updated-info" id="updatedInfo"></div>
+      </div>
+      <button class="btn-excel" onclick="downloadExcel()">📥 엑셀 다운로드</button>
     </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th style="width:40%">공고명 / 발주기관</th>
+            <th style="width:42%">공고명 / 발주기관</th>
             <th>업무구분</th>
             <th>배정예산</th>
             <th>공고일시</th>
@@ -300,100 +122,53 @@
     </div>
   </div>
 
-  <div id="loadingSection" style="display:none;">
-    <div class="table-wrap">
-      <div class="loading">
-        <div class="spinner"></div>
-        나라장터 데이터를 불러오는 중입니다...
-      </div>
-    </div>
-  </div>
-
   <div id="emptySection" style="display:none;">
     <div class="table-wrap">
-      <div class="empty-state">
-        <div class="icon">📭</div>
-        <p>해당 기간에 입찰공고가 없습니다.</p>
-      </div>
+      <div class="empty-state"><div class="icon">📭</div><p>검색 결과가 없습니다.</p></div>
     </div>
   </div>
 </div>
 
 <script>
-const API_KEY = 'your';
-const PROXY = 'https://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoThng';
-
 let allBids = [];
 
-function today() {
-  return new Date().toISOString().split('T')[0];
+async function loadData() {
+  try {
+    const res = await fetch('bids.json?t=' + Date.now());
+    if (!res.ok) throw new Error('데이터 파일을 찾을 수 없습니다.');
+    const data = await res.json();
+    allBids = data.items || [];
+    document.getElementById('updatedInfo').textContent = `마지막 업데이트: ${data.updated} | 전체 ${data.total}건`;
+    document.getElementById('loadingSection').style.display = 'none';
+    filterBids();
+  } catch(e) {
+    document.getElementById('loadingSection').style.display = 'none';
+    document.getElementById('errorMsg').textContent = '데이터를 불러오지 못했습니다. GitHub Actions를 먼저 실행해주세요.';
+    document.getElementById('errorMsg').style.display = 'block';
+  }
 }
 
-function monthAgo() {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 1);
-  return d.toISOString().split('T')[0];
-}
-
-document.getElementById('fromDate').value = monthAgo();
-document.getElementById('toDate').value = today();
-
-function dateToParam(dateStr) {
-  return dateStr.replace(/-/g, '') + '0000';
-}
-
-function dateToParamEnd(dateStr) {
-  return dateStr.replace(/-/g, '') + '2359';
-}
-
-async function searchBids() {
+function filterBids() {
+  const keyword = document.getElementById('keyword').value.trim().toLowerCase();
   const from = document.getElementById('fromDate').value;
   const to = document.getElementById('toDate').value;
-  const keyword = document.getElementById('keyword').value.trim();
 
-  if (!from || !to) {
-    showError('조회 시작일과 종료일을 선택해주세요.');
-    return;
-  }
+  let filtered = allBids.filter(b => {
+    const title = (b.bidNtceNm || '').toLowerCase();
+    if (keyword && !title.includes(keyword)) return false;
+    if (from && b.bidNtceDt && b.bidNtceDt < from.replace(/-/g,'')) return false;
+    if (to && b.bidNtceDt && b.bidNtceDt > to.replace(/-/g,'') + '2359') return false;
+    return true;
+  });
 
-  document.getElementById('errorMsg').style.display = 'none';
-  document.getElementById('resultSection').style.display = 'none';
-  document.getElementById('emptySection').style.display = 'none';
-  document.getElementById('loadingSection').style.display = 'block';
-  document.getElementById('searchBtn').disabled = true;
-
-  try {
-    const params = new URLSearchParams({
-      serviceKey: API_KEY,
-      pageNo: '1',
-      numOfRows: '100',
-      inqryDiv: '1',
-      inqryBgnDt: dateToParam(from),
-      inqryEndDt: dateToParamEnd(to),
-      type: 'json'
-    });
-
-    if (keyword) params.append('bidNtceNm', keyword);
-
-    const url = `${PROXY}?${params.toString()}`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    let items = data?.response?.body?.items || [];
-    if (!Array.isArray(items)) items = [items];
-
-    allBids = items;
-    renderTable(items);
-  } catch (e) {
-    showError('API 호출 중 오류가 발생했습니다. API 키를 확인해주세요.\n' + e.message);
-  } finally {
-    document.getElementById('loadingSection').style.display = 'none';
-    document.getElementById('searchBtn').disabled = false;
-  }
+  renderTable(filtered);
 }
 
 function renderTable(items) {
-  if (!items || items.length === 0) {
+  document.getElementById('resultSection').style.display = 'none';
+  document.getElementById('emptySection').style.display = 'none';
+
+  if (!items.length) {
     document.getElementById('emptySection').style.display = 'block';
     return;
   }
@@ -403,14 +178,14 @@ function renderTable(items) {
   tbody.innerHTML = '';
 
   items.forEach(b => {
-    const title = b.bidNtceNm || '-';
-    const org = b.ntceInsttNm || '-';
+    const title  = b.bidNtceNm || '-';
+    const org    = b.ntceInsttNm || '-';
     const amount = b.asignBdgtAmt ? Number(b.asignBdgtAmt).toLocaleString() + '원' : '-';
     const bidType = b.bidMethdNm || '-';
     const ntceDt = b.bidNtceDt || '-';
     const closeDt = b.bidClseDt || '-';
-    const bidNo = b.bidNtceNo || '';
-    const link = `https://www.g2b.go.kr/pt/menu/selectSubFrame.do?framesrc=/pt/menu/frameTgong.do?bidNtceNo=${bidNo}`;
+    const bidNo  = b.bidNtceNo || '';
+    const link   = `https://www.g2b.go.kr/pt/menu/selectSubFrame.do?framesrc=/pt/menu/frameTgong.do?bidNtceNo=${bidNo}`;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -429,16 +204,22 @@ function renderTable(items) {
   document.getElementById('resultSection').style.display = 'block';
 }
 
-function showError(msg) {
-  document.getElementById('loadingSection').style.display = 'none';
-  document.getElementById('errorMsg').textContent = msg;
-  document.getElementById('errorMsg').style.display = 'block';
-}
-
 function downloadExcel() {
-  if (!allBids.length) return;
+  const keyword = document.getElementById('keyword').value.trim().toLowerCase();
+  const from = document.getElementById('fromDate').value;
+  const to = document.getElementById('toDate').value;
 
-  const rows = allBids.map(b => ({
+  let filtered = allBids.filter(b => {
+    const title = (b.bidNtceNm || '').toLowerCase();
+    if (keyword && !title.includes(keyword)) return false;
+    if (from && b.bidNtceDt && b.bidNtceDt < from.replace(/-/g,'')) return false;
+    if (to && b.bidNtceDt && b.bidNtceDt > to.replace(/-/g,'') + '2359') return false;
+    return true;
+  });
+
+  if (!filtered.length) return;
+
+  const rows = filtered.map(b => ({
     '공고명': b.bidNtceNm || '-',
     '발주기관': b.ntceInsttNm || '-',
     '업무구분': b.bidMethdNm || '-',
@@ -451,11 +232,10 @@ function downloadExcel() {
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '입찰공고');
-
-  const from = document.getElementById('fromDate').value.replace(/-/g, '');
-  const to = document.getElementById('toDate').value.replace(/-/g, '');
-  XLSX.writeFile(wb, `나라장터_입찰공고_${from}_${to}.xlsx`);
+  XLSX.writeFile(wb, `나라장터_입찰공고_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
+
+loadData();
 </script>
 </body>
 </html>
